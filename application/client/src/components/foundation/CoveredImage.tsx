@@ -6,14 +6,22 @@ import { Modal } from "@web-speed-hackathon-2026/client/src/components/modal/Mod
 interface Props {
   alt?: string;
   src: string;
+  metadataSrc?: string;
+  loading?: "eager" | "lazy";
 }
 
 /**
  * アスペクト比を維持したまま、要素のコンテンツボックス全体を埋めるように画像を拡大縮小します
  */
-export const CoveredImage = ({ alt: initialAlt = "", src }: Props) => {
+export const CoveredImage = ({
+  alt: initialAlt = "",
+  src,
+  metadataSrc,
+  loading = "lazy",
+}: Props) => {
   const dialogId = useId();
   const [isAltRequested, setIsAltRequested] = useState(false);
+  const [displaySrc, setDisplaySrc] = useState(src);
   // ダイアログの背景をクリックしたときに投稿詳細ページに遷移しないようにする
   const handleDialogClick = useCallback((ev: MouseEvent<HTMLDialogElement>) => {
     ev.stopPropagation();
@@ -22,6 +30,10 @@ export const CoveredImage = ({ alt: initialAlt = "", src }: Props) => {
   // EXIF alt text is loaded lazily after first paint — does not block rendering
   const [alt, setAlt] = useState(initialAlt);
   useEffect(() => {
+    setDisplaySrc(src);
+  }, [src]);
+
+  useEffect(() => {
     if (!isAltRequested || alt !== "") {
       return;
     }
@@ -29,7 +41,10 @@ export const CoveredImage = ({ alt: initialAlt = "", src }: Props) => {
     let cancelled = false;
     const parseAlt = async () => {
       try {
-        const [{ ImageIFD, load }, response] = await Promise.all([import("piexifjs"), fetch(src)]);
+        const [{ ImageIFD, load }, response] = await Promise.all([
+          import("piexifjs"),
+          fetch(metadataSrc ?? src),
+        ]);
         const data = await response.arrayBuffer();
         if (cancelled) {
           return;
@@ -56,12 +71,23 @@ export const CoveredImage = ({ alt: initialAlt = "", src }: Props) => {
     return () => {
       cancelled = true;
     };
-  }, [alt, isAltRequested, src]);
+  }, [alt, isAltRequested, metadataSrc, src]);
 
   return (
     <div className="relative h-full w-full overflow-hidden">
       {/* Render immediately with native img — no binary fetch required before paint */}
-      <img alt={alt} className="absolute inset-0 h-full w-full object-cover" src={src} />
+      <img
+        alt={alt}
+        className="absolute inset-0 h-full w-full object-cover"
+        decoding="async"
+        loading={loading}
+        onError={() => {
+          if (metadataSrc != null && displaySrc !== metadataSrc) {
+            setDisplaySrc(metadataSrc);
+          }
+        }}
+        src={displaySrc}
+      />
 
       <button
         className="border-cax-border bg-cax-surface-raised/90 text-cax-text-muted hover:bg-cax-surface absolute right-1 bottom-1 rounded-full border px-2 py-1 text-center text-xs"
