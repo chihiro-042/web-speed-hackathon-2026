@@ -25,7 +25,6 @@ export const AuthModalPage = ({ onRequestCloseModal, onSubmit }: Props) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const errors = useMemo(() => validate(values), [values]);
-  const isInvalid = Object.keys(errors).length > 0;
   const type = values.type;
 
   const handleFieldChange = useCallback((name: keyof AuthFormData, value: string) => {
@@ -44,14 +43,28 @@ export const AuthModalPage = ({ onRequestCloseModal, onSubmit }: Props) => {
   const handleSubmit = useCallback(
     async (ev: FormEvent<HTMLFormElement>) => {
       ev.preventDefault();
-      if (isInvalid || isSubmitting) {
+      if (isSubmitting) {
+        return;
+      }
+
+      const formData = new FormData(ev.currentTarget);
+      const nextValues: AuthFormData = {
+        type,
+        username: String(formData.get("username") ?? ""),
+        name: String(formData.get("name") ?? ""),
+        password: String(formData.get("password") ?? ""),
+      };
+      const nextErrors = validate(nextValues);
+      setValues(nextValues);
+      if (Object.keys(nextErrors).length > 0) {
+        setSubmitError("");
         return;
       }
 
       setIsSubmitting(true);
       setSubmitError("");
       try {
-        const error = await onSubmit(values);
+        const error = await onSubmit(nextValues);
         if (error) {
           setSubmitError(error);
           return;
@@ -61,7 +74,7 @@ export const AuthModalPage = ({ onRequestCloseModal, onSubmit }: Props) => {
         setIsSubmitting(false);
       }
     },
-    [isInvalid, isSubmitting, onSubmit, values],
+    [isSubmitting, onSubmit, type],
   );
 
   return (
@@ -118,7 +131,7 @@ export const AuthModalPage = ({ onRequestCloseModal, onSubmit }: Props) => {
         </p>
       ) : null}
 
-      <ModalSubmitButton disabled={isSubmitting || isInvalid} loading={isSubmitting}>
+      <ModalSubmitButton disabled={isSubmitting} loading={isSubmitting}>
         {type === "signin" ? "サインイン" : "登録する"}
       </ModalSubmitButton>
 

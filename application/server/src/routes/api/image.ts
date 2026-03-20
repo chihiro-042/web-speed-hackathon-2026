@@ -32,12 +32,12 @@ imageRouter.post("/images", async (req, res) => {
   await fs.mkdir(path.resolve(UPLOAD_PATH, "images/optimized"), { recursive: true });
 
   const originalFilePath = path.resolve(UPLOAD_PATH, `./images/${imageId}.${EXTENSION}`);
-  const optimizedFilePath = path.resolve(
-    UPLOAD_PATH,
-    `./images/optimized/${imageId}.${EXTENSION}`,
-  );
+  const optimizedFilePath = path.resolve(UPLOAD_PATH, `./images/optimized/${imageId}.${EXTENSION}`);
 
-  await Promise.all([fs.writeFile(originalFilePath, req.body), fs.writeFile(optimizedFilePath, req.body)]);
+  await Promise.all([
+    fs.writeFile(originalFilePath, req.body),
+    fs.writeFile(optimizedFilePath, req.body),
+  ]);
 
   return res.status(200).type("application/json").send({ id: imageId });
 });

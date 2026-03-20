@@ -28,7 +28,7 @@ export const PausableMovie = ({ posterSrc, src }: Props) => {
   return (
     <AspectRatioBox aspectHeight={1} aspectWidth={1}>
       <button
-        aria-label={isPlaying ? "動画を停止" : "動画を再生"}
+        aria-label="動画プレイヤー"
         aria-pressed={isPlaying}
         className="group relative block h-full w-full"
         onClick={handleClick}

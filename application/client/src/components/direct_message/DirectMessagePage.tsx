@@ -75,8 +75,14 @@ export const DirectMessagePage = ({
   const handleSubmit = useCallback(
     (event: FormEvent<HTMLFormElement>) => {
       event.preventDefault();
-      void onSubmit({ body: text.trim() }).then(() => {
-        setText("");
+      const submittedText = text.trim();
+      if (submittedText.length === 0) {
+        return;
+      }
+
+      setText("");
+      void onSubmit({ body: submittedText }).catch(() => {
+        setText((current) => (current.length === 0 ? text : current));
       });
     },
     [onSubmit, text],
@@ -96,8 +102,12 @@ export const DirectMessagePage = ({
     }
 
     let observer: IntersectionObserver | null = null;
+    let lastHeight = -1;
 
     const observe = () => {
+      const height = stickyBarEl.offsetHeight;
+      if (height === lastHeight) return;
+      lastHeight = height;
       observer?.disconnect();
       observer = new IntersectionObserver(
         (entries) => {
@@ -105,7 +115,7 @@ export const DirectMessagePage = ({
         },
         {
           threshold: 1,
-          rootMargin: `0px 0px -${stickyBarEl.getBoundingClientRect().height}px 0px`,
+          rootMargin: `0px 0px -${height}px 0px`,
         },
       );
       observer.observe(endEl);
@@ -131,7 +141,7 @@ export const DirectMessagePage = ({
     if (shouldAutoScrollRef.current) {
       scrollToBottom();
     }
-  }, [isPeerTyping, scrollToBottom, textAreaRows]);
+  }, [isPeerTyping, scrollToBottom]);
 
   useLayoutEffect(() => {
     const nextLastMessageId = lastMessage?.id ?? null;

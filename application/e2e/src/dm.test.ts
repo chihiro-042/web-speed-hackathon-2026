@@ -152,6 +152,32 @@ test.describe("DM一覧", () => {
     await expect(lastMessage).toContainText(now);
   });
 
+  test("メッセージを続けて送信できること", async ({ page }) => {
+    await login(page, "gg3i6j6");
+    await page.goto("/dm");
+
+    await page.getByRole("link", { name: "gg3hlb16" }).click();
+    await page.waitForURL("**/dm/*", { timeout: 10 * 1000 });
+
+    const messageInput = page.getByRole("textbox", { name: "内容" });
+    const firstMessage = `【1通目:${new Date().toISOString()}】`;
+    const secondMessage = `【2通目:${new Date().toISOString()}】`;
+
+    await messageInput.click();
+    await messageInput.pressSequentially(firstMessage, { delay: 10 });
+    await page.keyboard.press("Enter");
+    await expect(page.getByTestId("dm-message-list").locator("li").last()).toContainText(
+      firstMessage,
+    );
+
+    await messageInput.pressSequentially(secondMessage, { delay: 10 });
+    await page.keyboard.press("Enter");
+
+    const messages = page.getByTestId("dm-message-list").locator("li");
+    await expect(messages.last()).toContainText(secondMessage);
+    await expect(messages).toContainText([firstMessage, secondMessage]);
+  });
+
   test("相手が入力中の場合、入力中のインジケータが表示されること", async ({ page, browser }) => {
     await login(page, "gg3i6j6");
     await page.goto("/dm");
