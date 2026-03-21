@@ -1,5 +1,5 @@
 import "katex/dist/katex.min.css";
-import { useDeferredValue } from "react";
+import { memo, useDeferredValue } from "react";
 import Markdown from "react-markdown";
 import rehypeKatex from "rehype-katex";
 import remarkGfm from "remark-gfm";
@@ -18,7 +18,7 @@ interface Props {
   assistantStreaming?: boolean;
 }
 
-const UserMessage = ({ content }: { content: string }) => {
+const UserMessage = memo(({ content }: { content: string }) => {
   return (
     <div className="mb-6 flex justify-end">
       <div className="bg-cax-surface-subtle text-cax-text max-w-[80%] rounded-3xl px-4 py-2">
@@ -26,9 +26,9 @@ const UserMessage = ({ content }: { content: string }) => {
       </div>
     </div>
   );
-};
+});
 
-const AssistantMessage = ({ content, streaming }: { content: string; streaming: boolean }) => {
+const AssistantMessage = memo(({ content, streaming }: { content: string; streaming: boolean }) => {
   const deferredContent = useDeferredValue(content);
   const markdownSource = streaming ? deferredContent : content;
 
@@ -55,11 +55,11 @@ const AssistantMessage = ({ content, streaming }: { content: string; streaming: 
       </div>
     </div>
   );
-};
+});
 
-export const ChatMessage = ({ message, assistantStreaming = false }: Props) => {
+export const ChatMessage = memo(({ message, assistantStreaming = false }: Props) => {
   if (message.role === "user") {
     return <UserMessage content={message.content} />;
   }
   return <AssistantMessage content={message.content} streaming={assistantStreaming} />;
-};
+});

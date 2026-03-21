@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { startTransition, useCallback, useEffect, useRef, useState } from "react";
 import { Helmet } from "react-helmet";
 import { useParams } from "react-router";
 
@@ -45,11 +45,15 @@ export const DirectMessageContainer = ({ activeUser, authModalId }: Props) => {
       const data = await fetchJSON<Models.DirectMessageConversation>(
         `/api/v1/dm/${conversationId}`,
       );
-      setConversation(data);
-      setConversationError(null);
+      startTransition(() => {
+        setConversation(data);
+        setConversationError(null);
+      });
     } catch (error) {
-      setConversation(null);
-      setConversationError(error as Error);
+      startTransition(() => {
+        setConversation(null);
+        setConversationError(error as Error);
+      });
     }
   }, [activeUser, conversationId]);
 
@@ -72,10 +76,12 @@ export const DirectMessageContainer = ({ activeUser, authModalId }: Props) => {
             body: params.body,
           },
         );
-        setConversation((prev) => {
-          if (prev == null) return prev;
-          if (prev.messages.some((m) => m.id === newMessage.id)) return prev;
-          return { ...prev, messages: [...prev.messages, newMessage] };
+        startTransition(() => {
+          setConversation((prev) => {
+            if (prev == null) return prev;
+            if (prev.messages.some((m) => m.id === newMessage.id)) return prev;
+            return { ...prev, messages: [...prev.messages, newMessage] };
+          });
         });
       } finally {
         setIsSubmitting(false);
@@ -95,21 +101,23 @@ export const DirectMessageContainer = ({ activeUser, authModalId }: Props) => {
       const olderConversation = await fetchJSON<Models.DirectMessageConversation>(
         `/api/v1/dm/${conversationId}?beforeMessageId=${encodeURIComponent(oldestMessageId)}`,
       );
-      setConversation((prev) => {
-        if (prev == null) {
-          return prev;
-        }
+      startTransition(() => {
+        setConversation((prev) => {
+          if (prev == null) {
+            return prev;
+          }
 
-        const existingMessageIds = new Set(prev.messages.map((message) => message.id));
-        const olderMessages = olderConversation.messages.filter(
-          (message) => !existingMessageIds.has(message.id),
-        );
+          const existingMessageIds = new Set(prev.messages.map((message) => message.id));
+          const olderMessages = olderConversation.messages.filter(
+            (message) => !existingMessageIds.has(message.id),
+          );
 
-        return {
-          ...prev,
-          hasOlderMessages: olderConversation.hasOlderMessages,
-          messages: [...olderMessages, ...prev.messages],
-        };
+          return {
+            ...prev,
+            hasOlderMessages: olderConversation.hasOlderMessages,
+            messages: [...olderMessages, ...prev.messages],
+          };
+        });
       });
     } finally {
       setIsLoadingOlderMessages(false);
@@ -127,10 +135,12 @@ export const DirectMessageContainer = ({ activeUser, authModalId }: Props) => {
   useWs(`/api/v1/dm/${conversationId}`, (event: DmUpdateEvent | DmTypingEvent) => {
     if (event.type === "dm:conversation:message") {
       const newMsg = event.payload;
-      setConversation((prev) => {
-        if (prev == null) return prev;
-        if (prev.messages.some((m) => m.id === newMsg.id)) return prev;
-        return { ...prev, messages: [...prev.messages, newMsg] };
+      startTransition(() => {
+        setConversation((prev) => {
+          if (prev == null) return prev;
+          if (prev.messages.some((m) => m.id === newMsg.id)) return prev;
+          return { ...prev, messages: [...prev.messages, newMsg] };
+        });
       });
       if (newMsg.sender.id === activeUser?.id) {
         setIsSubmitting(false);
