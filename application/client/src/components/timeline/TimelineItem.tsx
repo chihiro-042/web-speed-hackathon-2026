@@ -28,9 +28,10 @@ const isClickedAnchorOrButton = (target: EventTarget | null, currentTarget: Elem
  */
 interface Props {
   post: Models.Post;
+  priority?: boolean;
 }
 
-export const TimelineItem = ({ post }: Props) => {
+export const TimelineItem = ({ post, priority = false }: Props) => {
   const navigate = useNavigate();
 
   /**
@@ -57,7 +58,8 @@ export const TimelineItem = ({ post }: Props) => {
             <img
               alt={post.user.profileImage?.alt ?? ""}
               decoding="async"
-              loading="lazy"
+              fetchPriority={priority ? "high" : "auto"}
+              loading={priority ? "eager" : "lazy"}
               src={getSafeProfileImagePath(post.user.profileImage)}
             />
           </Link>
@@ -88,12 +90,12 @@ export const TimelineItem = ({ post }: Props) => {
           </div>
           {post.images?.length > 0 ? (
             <div className="relative mt-2 w-full">
-              <ImageArea images={post.images} />
+              <ImageArea eagerFirstImage={priority} images={post.images} />
             </div>
           ) : null}
           {post.movie ? (
             <div className="relative mt-2 w-full">
-              <MovieArea movie={post.movie} />
+              <MovieArea eager={priority} movie={post.movie} />
             </div>
           ) : null}
           {post.sound ? (

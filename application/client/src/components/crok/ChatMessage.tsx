@@ -8,8 +8,13 @@ import { CodeBlock } from "@web-speed-hackathon-2026/client/src/components/crok/
 import { TypingIndicator } from "@web-speed-hackathon-2026/client/src/components/crok/TypingIndicator";
 import { CrokLogo } from "@web-speed-hackathon-2026/client/src/components/foundation/CrokLogo";
 
+const remarkPlugins = [remarkMath, remarkGfm];
+const rehypePlugins = [rehypeKatex];
+
 interface Props {
   message: Models.ChatMessage;
+  /** 最後のアシスタントメッセージのストリーミング中のみ true（Markdown は完了後にのみ実行） */
+  assistantStreaming?: boolean;
 }
 
 const UserMessage = ({ content }: { content: string }) => {
@@ -22,7 +27,7 @@ const UserMessage = ({ content }: { content: string }) => {
   );
 };
 
-const AssistantMessage = ({ content }: { content: string }) => {
+const AssistantMessage = ({ content, streaming }: { content: string; streaming: boolean }) => {
   return (
     <div className="mb-6 flex gap-4">
       <div className="h-8 w-8 shrink-0">
@@ -31,17 +36,18 @@ const AssistantMessage = ({ content }: { content: string }) => {
       <div className="min-w-0 flex-1">
         <div className="text-cax-text mb-1 text-sm font-medium">Crok</div>
         <div className="markdown text-cax-text max-w-none">
-          {content ? (
+          {!content ? (
+            <TypingIndicator />
+          ) : streaming ? (
+            <p className="whitespace-pre-wrap">{content}</p>
+          ) : (
             <Markdown
               components={{ pre: CodeBlock }}
-              key={content}
-              rehypePlugins={[rehypeKatex]}
-              remarkPlugins={[remarkMath, remarkGfm]}
+              rehypePlugins={rehypePlugins}
+              remarkPlugins={remarkPlugins}
             >
               {content}
             </Markdown>
-          ) : (
-            <TypingIndicator />
           )}
         </div>
       </div>
@@ -49,9 +55,9 @@ const AssistantMessage = ({ content }: { content: string }) => {
   );
 };
 
-export const ChatMessage = ({ message }: Props) => {
+export const ChatMessage = ({ message, assistantStreaming = false }: Props) => {
   if (message.role === "user") {
     return <UserMessage content={message.content} />;
   }
-  return <AssistantMessage content={message.content} />;
+  return <AssistantMessage content={message.content} streaming={assistantStreaming} />;
 };
