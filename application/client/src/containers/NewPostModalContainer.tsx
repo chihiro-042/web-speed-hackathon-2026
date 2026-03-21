@@ -90,6 +90,36 @@ export const NewPostModalContainer = ({ id }: Props) => {
     };
   }, []);
 
+  useEffect(() => {
+    const preload = () => {
+      void import("@web-speed-hackathon-2026/client/src/components/new_post_modal/NewPostModalPage");
+      void import("@imagemagick/magick-wasm");
+      void import("@web-speed-hackathon-2026/client/src/utils/convert_image");
+      void import("@web-speed-hackathon-2026/client/src/utils/convert_sound");
+      void import("@web-speed-hackathon-2026/client/src/utils/convert_movie");
+      void import("@web-speed-hackathon-2026/client/src/utils/load_ffmpeg").then(
+        ({ preloadFFmpegAssets }) => {
+          preloadFFmpegAssets();
+        },
+      );
+    };
+
+    const requestIdle = window.requestIdleCallback?.bind(window);
+    const cancelIdle = window.cancelIdleCallback?.bind(window);
+
+    if (requestIdle != null) {
+      const idleId = requestIdle(preload, { timeout: 2000 });
+      return () => {
+        cancelIdle?.(idleId);
+      };
+    }
+
+    const timeoutId = window.setTimeout(preload, 1000);
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, []);
+
   const { pathname } = useLocation();
   const navigate = useNavigate();
 

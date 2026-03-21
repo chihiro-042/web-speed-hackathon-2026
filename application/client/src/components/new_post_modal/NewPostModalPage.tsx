@@ -1,4 +1,10 @@
-import { ChangeEventHandler, FormEventHandler, useCallback, useState } from "react";
+import {
+  startTransition,
+  ChangeEventHandler,
+  FormEventHandler,
+  useCallback,
+  useState,
+} from "react";
 
 import { FontAwesomeIcon } from "@web-speed-hackathon-2026/client/src/components/foundation/FontAwesomeIcon";
 import { ModalErrorMessage } from "@web-speed-hackathon-2026/client/src/components/modal/ModalErrorMessage";
@@ -27,6 +33,14 @@ interface Props {
   onSubmit: (params: SubmitParams) => void;
 }
 
+function waitForNextPaint(): Promise<void> {
+  return new Promise((resolve) => {
+    requestAnimationFrame(() => {
+      resolve();
+    });
+  });
+}
+
 export const NewPostModalPage = ({ id, hasError, isLoading, onResetError, onSubmit }: Props) => {
   const [params, setParams] = useState<SubmitParams>({
     images: [],
@@ -48,6 +62,10 @@ export const NewPostModalPage = ({ id, hasError, isLoading, onResetError, onSubm
 
   const handleChangeImages = useCallback<ChangeEventHandler<HTMLInputElement>>((ev) => {
     const files = Array.from(ev.currentTarget.files ?? []).slice(0, 4);
+    if (files.length === 0) {
+      return;
+    }
+
     const isValid = files.every((file) => file.size <= MAX_UPLOAD_BYTES_LIMIT);
 
     setHasFileError(isValid !== true);
@@ -55,6 +73,8 @@ export const NewPostModalPage = ({ id, hasError, isLoading, onResetError, onSubm
       setIsConverting(true);
 
       void (async () => {
+        await waitForNextPaint();
+
         const [{ MagickFormat }, { convertImage }] = await Promise.all([
           import("@imagemagick/magick-wasm"),
           import("@web-speed-hackathon-2026/client/src/utils/convert_image"),
@@ -69,12 +89,14 @@ export const NewPostModalPage = ({ id, hasError, isLoading, onResetError, onSubm
           ),
         );
 
-        setParams((params) => ({
-          ...params,
-          images: convertedFiles,
-          movie: undefined,
-          sound: undefined,
-        }));
+        startTransition(() => {
+          setParams((params) => ({
+            ...params,
+            images: convertedFiles,
+            movie: undefined,
+            sound: undefined,
+          }));
+        });
       })()
         .catch(console.error)
         .finally(() => {
@@ -84,22 +106,28 @@ export const NewPostModalPage = ({ id, hasError, isLoading, onResetError, onSubm
   }, []);
 
   const handleChangeSound = useCallback<ChangeEventHandler<HTMLInputElement>>((ev) => {
-    const file = Array.from(ev.currentTarget.files ?? [])[0]!;
+    const file = Array.from(ev.currentTarget.files ?? [])[0];
+    if (file == null) {
+      return;
+    }
     const isValid = file.size <= MAX_UPLOAD_BYTES_LIMIT;
 
     setHasFileError(isValid !== true);
     if (isValid) {
       setIsConverting(true);
 
-      void import("@web-speed-hackathon-2026/client/src/utils/convert_sound")
+      void waitForNextPaint()
+        .then(() => import("@web-speed-hackathon-2026/client/src/utils/convert_sound"))
         .then(({ convertSound }) => convertSound(file, { extension: "mp3" }))
         .then((converted) => {
-          setParams((params) => ({
-            ...params,
-            images: [],
-            movie: undefined,
-            sound: new File([converted], "converted.mp3", { type: "audio/mpeg" }),
-          }));
+          startTransition(() => {
+            setParams((params) => ({
+              ...params,
+              images: [],
+              movie: undefined,
+              sound: new File([converted], "converted.mp3", { type: "audio/mpeg" }),
+            }));
+          });
         })
         .catch(console.error)
         .finally(() => {
@@ -109,24 +137,30 @@ export const NewPostModalPage = ({ id, hasError, isLoading, onResetError, onSubm
   }, []);
 
   const handleChangeMovie = useCallback<ChangeEventHandler<HTMLInputElement>>((ev) => {
-    const file = Array.from(ev.currentTarget.files ?? [])[0]!;
+    const file = Array.from(ev.currentTarget.files ?? [])[0];
+    if (file == null) {
+      return;
+    }
     const isValid = file.size <= MAX_UPLOAD_BYTES_LIMIT;
 
     setHasFileError(isValid !== true);
     if (isValid) {
       setIsConverting(true);
 
-      void import("@web-speed-hackathon-2026/client/src/utils/convert_movie")
+      void waitForNextPaint()
+        .then(() => import("@web-speed-hackathon-2026/client/src/utils/convert_movie"))
         .then(({ convertMovie }) => convertMovie(file, { extension: "gif", size: undefined }))
         .then((converted) => {
-          setParams((params) => ({
-            ...params,
-            images: [],
-            movie: new File([converted], "converted.gif", {
-              type: "image/gif",
-            }),
-            sound: undefined,
-          }));
+          startTransition(() => {
+            setParams((params) => ({
+              ...params,
+              images: [],
+              movie: new File([converted], "converted.gif", {
+                type: "image/gif",
+              }),
+              sound: undefined,
+            }));
+          });
         })
         .catch(console.error)
         .finally(() => {

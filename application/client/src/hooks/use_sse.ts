@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { startTransition, useCallback, useRef, useState } from "react";
 
 const FLUSH_INTERVAL_MS = 150;
 
@@ -34,7 +34,9 @@ export function useSSE<T>(options: SSEOptions<T>): ReturnValues {
   const flushContentToState = useCallback(() => {
     cancelPendingFlush();
     lastFlushTimeRef.current = Date.now();
-    setContent(contentRef.current);
+    startTransition(() => {
+      setContent(contentRef.current);
+    });
   }, [cancelPendingFlush]);
 
   const scheduleContentFlush = useCallback(() => {
@@ -42,7 +44,9 @@ export function useSSE<T>(options: SSEOptions<T>): ReturnValues {
     const elapsed = now - lastFlushTimeRef.current;
     if (elapsed >= FLUSH_INTERVAL_MS) {
       lastFlushTimeRef.current = now;
-      setContent(contentRef.current);
+      startTransition(() => {
+        setContent(contentRef.current);
+      });
       cancelPendingFlush();
       return;
     }
@@ -50,7 +54,9 @@ export function useSSE<T>(options: SSEOptions<T>): ReturnValues {
     throttleTimeoutRef.current = setTimeout(() => {
       throttleTimeoutRef.current = null;
       lastFlushTimeRef.current = Date.now();
-      setContent(contentRef.current);
+      startTransition(() => {
+        setContent(contentRef.current);
+      });
     }, FLUSH_INTERVAL_MS - elapsed);
   }, [cancelPendingFlush]);
 

@@ -15,6 +15,13 @@ interface ConvertResult {
   buffer: ArrayBuffer;
 }
 
+interface WorkerRuntime {
+  onmessage: ((event: MessageEvent<ConvertMessage>) => void) | null;
+  postMessage: (message: ConvertResult, transfer?: Transferable[]) => void;
+}
+
+const workerScope = self as unknown as WorkerRuntime;
+
 /** Uint8Array を binary string へ変換（チャンク処理で高速化） */
 function uint8ArrayToBinaryString(arr: Uint8Array): string {
   const CHUNK = 0x8000;
@@ -25,7 +32,7 @@ function uint8ArrayToBinaryString(arr: Uint8Array): string {
   return result;
 }
 
-self.onmessage = async (event: MessageEvent<ConvertMessage>) => {
+workerScope.onmessage = async (event: MessageEvent<ConvertMessage>) => {
   const { byteArray, format } = event.data;
 
   await initializeImageMagick(magickWasm);
@@ -71,5 +78,5 @@ self.onmessage = async (event: MessageEvent<ConvertMessage>) => {
     });
   });
 
-  self.postMessage(result, [result.buffer]);
+  workerScope.postMessage(result, [result.buffer]);
 };
