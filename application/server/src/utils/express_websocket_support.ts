@@ -1,19 +1,8 @@
 import http from "node:http";
+import { parse, format } from "node:url";
 
 import Express, { Router } from "express";
 import { WebSocketServer } from "ws";
-
-const DUMMY_BASE_URL = "http://localhost";
-
-function appendWebSocketSuffix(pathOrUrl: string | undefined) {
-  const url = new URL(pathOrUrl ?? "/", DUMMY_BASE_URL);
-  const pathname =
-    url.pathname !== "/" && url.pathname.endsWith("/") ? url.pathname.slice(0, -1) : url.pathname;
-
-  url.pathname = pathname === "/" ? "/ws" : `${pathname}/ws`;
-
-  return `${url.pathname}${url.search}`;
-}
 
 // @ts-expect-error
 Router.prototype.ws = Express.application.ws = function (
@@ -22,7 +11,10 @@ Router.prototype.ws = Express.application.ws = function (
   ...handlers: Express.RequestHandler[]
 ) {
   // パスに `/ws` を付与してWebSocket用のルートを作成する
-  const wsPath = appendWebSocketSuffix(path);
+  const wsPath = format({
+    ...parse(path),
+    pathname: `${parse(path).pathname}/ws`,
+  });
   this.get(wsPath, ...handlers);
 };
 
@@ -37,7 +29,10 @@ Express.application.listen = function (this: Express.Application, ...args: unkno
     const req: Express.Request = Object.setPrototypeOf(rawReq, Express.request);
 
     // パスに `/ws` を付与して WebSocket 用のルートに変換する
-    req.url = appendWebSocketSuffix(req.url);
+    req.url = format({
+      ...parse(req.url),
+      pathname: `${parse(req.url).pathname}/ws`,
+    });
 
     const wss = mapping.get(req.path) ?? new WebSocketServer({ noServer: true });
     mapping.set(req.path, wss);
