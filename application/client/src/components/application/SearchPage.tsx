@@ -114,7 +114,7 @@ export const SearchPage = ({ query, results }: Props) => {
         <form onSubmit={onSubmit}>
           <div className="flex gap-2">
             <SearchInput error={error} onChange={setSearchText} value={searchText} />
-            <Button variant="primary" type="submit" disabled={!!error}>
+            <Button variant="primary" type="submit">
               検索
             </Button>
           </div>

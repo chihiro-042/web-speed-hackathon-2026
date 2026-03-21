@@ -131,7 +131,10 @@ export const AuthModalPage = ({ onRequestCloseModal, onSubmit }: Props) => {
         </p>
       ) : null}
 
-      <ModalSubmitButton disabled={isSubmitting} loading={isSubmitting}>
+      <ModalSubmitButton
+        disabled={isSubmitting || (type === "signup" && Object.keys(errors).length > 0)}
+        loading={isSubmitting}
+      >
         {type === "signin" ? "サインイン" : "登録する"}
       </ModalSubmitButton>
 

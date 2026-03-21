@@ -118,8 +118,18 @@ export const SoundPlayer = ({ sound }: Props) => {
           <AspectRatioBox aspectHeight={1} aspectWidth={10}>
             <div className="relative h-full w-full">
               <div className="absolute inset-0 h-full w-full">
-                {/* Waveform rendered only after binary data arrives */}
-                {waveData !== null ? <SoundWaveSVG soundData={waveData} /> : null}
+                {waveData !== null ? (
+                  <SoundWaveSVG soundData={waveData} />
+                ) : (
+                  <svg
+                    aria-hidden
+                    className="h-full w-full"
+                    preserveAspectRatio="none"
+                    viewBox="0 0 100 1"
+                  >
+                    <rect fill="var(--color-cax-border)" height="0.12" width="100" x="0" y="0.44" />
+                  </svg>
+                )}
               </div>
               <div
                 className="bg-cax-surface-subtle absolute inset-0 h-full w-full opacity-75"

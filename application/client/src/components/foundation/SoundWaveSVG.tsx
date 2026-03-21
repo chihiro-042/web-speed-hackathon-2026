@@ -6,6 +6,7 @@ interface ParsedData {
 }
 
 const PEAK_COUNT = 64;
+const VIEWBOX_WIDTH = 100;
 const PRECISION_SCALE = 1000;
 
 function quantize(value: number): number {
@@ -75,6 +76,8 @@ const SoundWaveSVGComponent = ({ soundData }: Props) => {
     };
   }, [soundData]);
 
+  const cell = VIEWBOX_WIDTH / PEAK_COUNT;
+
   const bars = useMemo(() => {
     if (max <= 0) {
       return [];
@@ -84,21 +87,23 @@ const SoundWaveSVGComponent = ({ soundData }: Props) => {
       return {
         height: ratio,
         idx,
+        width: cell * 0.8,
+        x: idx * cell + cell * 0.1,
         y: quantize(1 - ratio),
       };
     });
-  }, [max, peaks]);
+  }, [max, peaks, cell]);
 
   return (
-    <svg className="h-full w-full" preserveAspectRatio="none" viewBox={`0 0 ${PEAK_COUNT} 1`}>
+    <svg className="h-full w-full" preserveAspectRatio="none" viewBox={`0 0 ${VIEWBOX_WIDTH} 1`}>
       {bars.map((bar) => {
         return (
           <rect
             key={bar.idx}
             fill="var(--color-cax-accent)"
             height={bar.height}
-            width="0.8"
-            x={bar.idx + 0.1}
+            width={bar.width}
+            x={bar.x}
             y={bar.y}
           />
         );

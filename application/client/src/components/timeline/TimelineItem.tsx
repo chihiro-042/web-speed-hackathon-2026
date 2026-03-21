@@ -12,7 +12,13 @@ import { isSamePostForRender } from "@web-speed-hackathon-2026/client/src/utils/
 const isClickedAnchorOrButton = (target: EventTarget | null, currentTarget: Element): boolean => {
   while (target !== null && target instanceof Element) {
     const tagName = target.tagName.toLowerCase();
-    if (["button", "a"].includes(tagName)) {
+    if (tagName === "a") {
+      return true;
+    }
+    if (tagName === "button") {
+      if (target.closest("[data-movie-area]") != null) {
+        return false;
+      }
       return true;
     }
     if (currentTarget === target) {

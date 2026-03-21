@@ -36,8 +36,19 @@ export async function sendJSON<T>(url: string, data: object): Promise<T> {
     },
     method: "POST",
   });
+  const text = await response.text();
   if (!response.ok) {
-    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    const err = new Error(`HTTP ${response.status}: ${response.statusText}`) as Error & {
+      responseJSON?: unknown;
+    };
+    if (text.length > 0) {
+      try {
+        err.responseJSON = JSON.parse(text) as unknown;
+      } catch {
+        /* 非JSON本文 */
+      }
+    }
+    throw err;
   }
-  return response.json() as Promise<T>;
+  return (text.length > 0 ? JSON.parse(text) : null) as T;
 }

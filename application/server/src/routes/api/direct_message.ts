@@ -385,7 +385,7 @@ directMessageRouter.post("/dm/:conversationId/read", async (req, res) => {
     await markDatabaseDirty();
     const unreadCount = await countUnreadDirectMessagesForUser(req.session.userId);
     eventhub.emit(`dm:unread/${req.session.userId}`, { unreadCount });
-    eventhub.emit(`dm:conversation/${conversation.id}:read/${peerId}`, {});
+    eventhub.emit(`dm:conversation/${conversation.id}:read/${req.session.userId}`, {});
   }
 
   return res.status(200).type("application/json").send({});

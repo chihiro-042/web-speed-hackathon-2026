@@ -18,6 +18,12 @@ export const MovieArea = memo(({ autoPlayInViewport = false, eager = false, movi
       className="border-cax-border bg-cax-surface-subtle relative h-full w-full overflow-hidden rounded-lg border"
       data-movie-area
     >
+      <canvas
+        aria-hidden
+        className="pointer-events-none absolute top-0 left-0 h-px w-px opacity-0"
+        height={2}
+        width={2}
+      />
       <PausableMovie
         autoPlayInViewport={autoPlayInViewport}
         eager={eager}
