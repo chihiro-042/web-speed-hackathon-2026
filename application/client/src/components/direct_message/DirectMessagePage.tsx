@@ -74,7 +74,9 @@ const DirectMessageRow = memo(
         </p>
         <div className="flex gap-1 text-xs">
           <time dateTime={message.createdAt}>{formatHM(message.createdAt)}</time>
-          {isActiveUserSend && message.isRead && <span className="text-cax-text-muted">既読</span>}
+          {isActiveUserSend && message.isRead ? (
+            <span className="text-cax-text-muted">既読</span>
+          ) : null}
         </div>
       </li>
     );
@@ -90,31 +92,33 @@ const DirectMessageMessageList = memo(
     messagesEndRef,
     onLoadOlderMessages,
   }: MessageListProps) => {
+    const handleClickLoadOlderMessages = useCallback(() => {
+      void onLoadOlderMessages();
+    }, [onLoadOlderMessages]);
+
     return (
       <div
         className="bg-cax-surface-subtle flex-1 space-y-4 overflow-y-auto px-4 pt-4 pb-8"
         ref={messageListContainerRef}
       >
-        {conversation.hasOlderMessages && (
+        {conversation.hasOlderMessages ? (
           <div className="flex justify-center">
             <Button
               className="text-sm"
               disabled={isLoadingOlderMessages}
-              onClick={() => {
-                void onLoadOlderMessages();
-              }}
+              onClick={handleClickLoadOlderMessages}
               variant="secondary"
             >
               {isLoadingOlderMessages ? "読み込み中..." : "以前のメッセージを読み込む"}
             </Button>
           </div>
-        )}
+        ) : null}
 
-        {conversation.messages.length === 0 && (
+        {conversation.messages.length === 0 ? (
           <p className="text-cax-text-muted text-center text-sm">
             まだメッセージはありません。最初のメッセージを送信してみましょう。
           </p>
-        )}
+        ) : null}
 
         <ul className="grid gap-3" data-testid="dm-message-list">
           {conversation.messages.map((message) => (
@@ -180,11 +184,11 @@ const DirectMessageComposer = ({
 
   return (
     <div ref={stickyBarRef} className="sticky bottom-12 z-10 lg:bottom-0">
-      {isPeerTyping && (
+      {isPeerTyping ? (
         <p className="bg-cax-surface-raised/75 text-cax-brand absolute inset-x-0 top-0 -translate-y-full px-4 py-1 text-xs">
           <span className="font-bold">{peerName}</span>さんが入力中…
         </p>
-      )}
+      ) : null}
 
       <form
         className="border-cax-border bg-cax-surface flex items-end gap-2 border-t p-4"

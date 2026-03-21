@@ -1,7 +1,9 @@
 import classNames from "classnames";
+import { useCallback } from "react";
 import { useLocation } from "react-router";
 
 import { Link } from "@web-speed-hackathon-2026/client/src/components/foundation/Link";
+import { prefetchRoute } from "@web-speed-hackathon-2026/client/src/utils/prefetch_route";
 
 interface Props {
   badge?: React.ReactNode;
@@ -15,6 +17,12 @@ interface Props {
 export const NavigationItem = ({ badge, href, icon, command, commandfor, text }: Props) => {
   const location = useLocation();
   const isActive = location.pathname === href;
+  const handlePrefetch = useCallback(() => {
+    if (href != null) {
+      prefetchRoute(href);
+    }
+  }, [href]);
+
   return (
     <li>
       {href !== undefined ? (
@@ -23,6 +31,9 @@ export const NavigationItem = ({ badge, href, icon, command, commandfor, text }:
             "flex flex-col items-center justify-center w-12 h-12 hover:bg-cax-brand-soft rounded-full sm:px-2 sm:w-24 sm:h-auto sm:rounded-sm lg:flex-row lg:justify-start lg:px-4 lg:py-2 lg:w-auto lg:h-auto lg:rounded-full",
             { "text-cax-brand": isActive },
           )}
+          onFocus={handlePrefetch}
+          onMouseEnter={handlePrefetch}
+          onTouchStart={handlePrefetch}
           to={href}
         >
           <span className="relative text-xl lg:pr-2 lg:text-3xl">

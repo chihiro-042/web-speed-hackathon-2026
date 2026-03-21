@@ -94,14 +94,14 @@ export const DirectMessageListPage = ({ activeUser, newDmModalId }: Props) => {
                           <p className="font-bold">{peer.name}</p>
                           <p className="text-cax-text-muted text-xs">@{peer.username}</p>
                         </div>
-                        {lastMessage != null && (
+                        {lastMessage != null ? (
                           <time
                             className="text-cax-text-subtle text-xs"
                             dateTime={lastMessage.createdAt}
                           >
                             {fromNow(lastMessage.createdAt)}
                           </time>
-                        )}
+                        ) : null}
                       </div>
                       <p className="mt-1 line-clamp-2 text-sm wrap-anywhere">{lastMessage?.body}</p>
                       {hasUnread ? (

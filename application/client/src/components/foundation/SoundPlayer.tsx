@@ -119,7 +119,7 @@ export const SoundPlayer = ({ sound }: Props) => {
             <div className="relative h-full w-full">
               <div className="absolute inset-0 h-full w-full">
                 {/* Waveform rendered only after binary data arrives */}
-                {waveData !== null && <SoundWaveSVG soundData={waveData} />}
+                {waveData !== null ? <SoundWaveSVG soundData={waveData} /> : null}
               </div>
               <div
                 className="bg-cax-surface-subtle absolute inset-0 h-full w-full opacity-75"

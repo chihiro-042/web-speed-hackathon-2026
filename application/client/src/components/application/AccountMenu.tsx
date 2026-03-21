@@ -19,7 +19,7 @@ export const AccountMenu = ({ user, onLogout }: Props) => {
         }
       }}
     >
-      {open && (
+      {open ? (
         <div className="border-cax-border bg-cax-surface absolute bottom-full left-0 mb-2 w-full overflow-hidden rounded-xl border py-1 shadow-lg">
           <button
             className="text-cax-text hover:bg-cax-surface-subtle w-full px-4 py-3 text-left text-sm font-bold"
@@ -31,7 +31,7 @@ export const AccountMenu = ({ user, onLogout }: Props) => {
             サインアウト
           </button>
         </div>
-      )}
+      ) : null}
       <button
         aria-label="アカウントメニュー"
         className="hover:bg-cax-surface-subtle flex w-full items-center gap-3 rounded-full p-2 transition-colors"

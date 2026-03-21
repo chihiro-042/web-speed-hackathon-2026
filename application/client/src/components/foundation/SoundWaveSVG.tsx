@@ -1,8 +1,15 @@
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 
 interface ParsedData {
   max: number;
   peaks: number[];
+}
+
+const PEAK_COUNT = 64;
+const PRECISION_SCALE = 1000;
+
+function quantize(value: number): number {
+  return Math.round(value * PRECISION_SCALE) / PRECISION_SCALE;
 }
 
 async function calculate(data: ArrayBuffer): Promise<ParsedData> {
@@ -15,10 +22,10 @@ async function calculate(data: ArrayBuffer): Promise<ParsedData> {
 
   const buffer = await audioCtx.decodeAudioData(data.slice(0));
   const leftData = buffer.getChannelData(0);
-  const rightData = buffer.getChannelData(1);
+  const rightData = buffer.numberOfChannels > 1 ? buffer.getChannelData(1) : leftData;
 
   const len = leftData.length;
-  const chunkSize = Math.ceil(len / 100);
+  const chunkSize = Math.max(1, Math.ceil(len / PEAK_COUNT));
   const peaks: number[] = [];
   let max = 0;
 
@@ -28,9 +35,11 @@ async function calculate(data: ArrayBuffer): Promise<ParsedData> {
     for (let j = i; j < end; j++) {
       sum += (Math.abs(leftData[j]!) + Math.abs(rightData[j]!)) / 2;
     }
-    const avg = sum / (end - i);
+    const avg = quantize(sum / (end - i));
     peaks.push(avg);
-    if (avg > max) max = avg;
+    if (avg > max) {
+      max = avg;
+    }
   }
 
   await audioCtx.close().catch(() => {});
@@ -42,34 +51,60 @@ interface Props {
   soundData: ArrayBuffer;
 }
 
-export const SoundWaveSVG = ({ soundData }: Props) => {
-  const uniqueIdRef = useRef(Math.random().toString(16));
+const SoundWaveSVGComponent = ({ soundData }: Props) => {
   const [{ max, peaks }, setPeaks] = useState<ParsedData>({
     max: 0,
     peaks: [],
   });
 
   useEffect(() => {
-    calculate(soundData).then(({ max, peaks }) => {
-      setPeaks({ max, peaks });
-    });
+    let mounted = true;
+    void calculate(soundData)
+      .then(({ max, peaks }) => {
+        if (mounted) {
+          setPeaks({ max, peaks });
+        }
+      })
+      .catch(() => {
+        if (mounted) {
+          setPeaks({ max: 0, peaks: [] });
+        }
+      });
+    return () => {
+      mounted = false;
+    };
   }, [soundData]);
 
+  const bars = useMemo(() => {
+    if (max <= 0) {
+      return [];
+    }
+    return peaks.map((peak, idx) => {
+      const ratio = quantize(peak / max);
+      return {
+        height: ratio,
+        idx,
+        y: quantize(1 - ratio),
+      };
+    });
+  }, [max, peaks]);
+
   return (
-    <svg className="h-full w-full" preserveAspectRatio="none" viewBox="0 0 100 1">
-      {peaks.map((peak, idx) => {
-        const ratio = peak / max;
+    <svg className="h-full w-full" preserveAspectRatio="none" viewBox={`0 0 ${PEAK_COUNT} 1`}>
+      {bars.map((bar) => {
         return (
           <rect
-            key={`${uniqueIdRef.current}#${idx}`}
+            key={bar.idx}
             fill="var(--color-cax-accent)"
-            height={ratio}
-            width="1"
-            x={idx}
-            y={1 - ratio}
+            height={bar.height}
+            width="0.8"
+            x={bar.idx + 0.1}
+            y={bar.y}
           />
         );
       })}
     </svg>
   );
 };
+
+export const SoundWaveSVG = memo(SoundWaveSVGComponent);

@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useId, useState } from "react";
+import { lazy, Suspense, type ReactNode, useCallback, useEffect, useId, useState } from "react";
 import { Route, Routes, useLocation, useNavigate } from "react-router";
 
 import { AppPage } from "@web-speed-hackathon-2026/client/src/components/application/AppPage";
@@ -44,6 +44,18 @@ const UserProfileContainer = lazy(() =>
   })),
 );
 
+const ROUTE_LOADING_FALLBACK = (
+  <div className="animate-pulse space-y-3 p-4">
+    <div className="bg-cax-border h-4 w-3/4 rounded" />
+    <div className="bg-cax-border h-4 w-1/2 rounded" />
+    <div className="bg-cax-border h-4 w-5/6 rounded" />
+  </div>
+);
+
+const LazyRoute = ({ children }: { children: ReactNode }) => {
+  return <Suspense fallback={ROUTE_LOADING_FALLBACK}>{children}</Suspense>;
+};
+
 export const AppContainer = () => {
   const { pathname } = useLocation();
   const navigate = useNavigate();
@@ -76,38 +88,66 @@ export const AppContainer = () => {
         newPostModalId={newPostModalId}
         onLogout={handleLogout}
       >
-        <Suspense
-          fallback={
-            <div className="animate-pulse space-y-3 p-4">
-              <div className="bg-cax-border h-4 w-3/4 rounded" />
-              <div className="bg-cax-border h-4 w-1/2 rounded" />
-              <div className="bg-cax-border h-4 w-5/6 rounded" />
-            </div>
-          }
-        >
-          <Routes>
-            <Route element={<TimelineContainer />} path="/" />
-            <Route
-              element={
+        <Routes>
+          <Route element={<TimelineContainer />} path="/" />
+          <Route
+            element={
+              <LazyRoute>
                 <DirectMessageListContainer activeUser={activeUser} authModalId={authModalId} />
-              }
-              path="/dm"
-            />
-            <Route
-              element={<DirectMessageContainer activeUser={activeUser} authModalId={authModalId} />}
-              path="/dm/:conversationId"
-            />
-            <Route element={<SearchContainer />} path="/search" />
-            <Route element={<UserProfileContainer />} path="/users/:username" />
-            <Route element={<PostContainer />} path="/posts/:postId" />
-            <Route element={<TermContainer />} path="/terms" />
-            <Route
-              element={<CrokContainer activeUser={activeUser} authModalId={authModalId} />}
-              path="/crok"
-            />
-            <Route element={<NotFoundContainer />} path="*" />
-          </Routes>
-        </Suspense>
+              </LazyRoute>
+            }
+            path="/dm"
+          />
+          <Route
+            element={
+              <LazyRoute>
+                <DirectMessageContainer activeUser={activeUser} authModalId={authModalId} />
+              </LazyRoute>
+            }
+            path="/dm/:conversationId"
+          />
+          <Route
+            element={
+              <LazyRoute>
+                <SearchContainer />
+              </LazyRoute>
+            }
+            path="/search"
+          />
+          <Route
+            element={
+              <LazyRoute>
+                <UserProfileContainer />
+              </LazyRoute>
+            }
+            path="/users/:username"
+          />
+          <Route
+            element={
+              <LazyRoute>
+                <PostContainer />
+              </LazyRoute>
+            }
+            path="/posts/:postId"
+          />
+          <Route
+            element={
+              <LazyRoute>
+                <TermContainer />
+              </LazyRoute>
+            }
+            path="/terms"
+          />
+          <Route
+            element={
+              <LazyRoute>
+                <CrokContainer activeUser={activeUser} authModalId={authModalId} />
+              </LazyRoute>
+            }
+            path="/crok"
+          />
+          <Route element={<NotFoundContainer />} path="*" />
+        </Routes>
       </AppPage>
 
       <AuthModalContainer id={authModalId} onUpdateActiveUser={setActiveUser} />

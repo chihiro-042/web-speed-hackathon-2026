@@ -1,3 +1,5 @@
+import { memo } from "react";
+
 import { PausableMovie } from "@web-speed-hackathon-2026/client/src/components/foundation/PausableMovie";
 import {
   getMoviePath,
@@ -10,7 +12,7 @@ interface Props {
   eager?: boolean;
 }
 
-export const MovieArea = ({ autoPlayInViewport = false, eager = false, movie }: Props) => {
+export const MovieArea = memo(({ autoPlayInViewport = false, eager = false, movie }: Props) => {
   return (
     <div
       className="border-cax-border bg-cax-surface-subtle relative h-full w-full overflow-hidden rounded-lg border"
@@ -24,4 +26,4 @@ export const MovieArea = ({ autoPlayInViewport = false, eager = false, movie }: 
       />
     </div>
   );
-};
+});
