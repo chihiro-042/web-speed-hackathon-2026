@@ -47,9 +47,30 @@ interface Props {
 export const NewPostModalContainer = ({ id }: Props) => {
   const dialogId = useId();
   const ref = useRef<HTMLDialogElement>(null);
+  const hasPreloadedMediaToolsRef = useRef(false);
   const [hasLoadedPage, setHasLoadedPage] = useState(false);
   const [resetKey, setResetKey] = useState(0);
   const [pendingDestinationPath, setPendingDestinationPath] = useState<string | null>(null);
+
+  const preloadModalDependencies = useCallback(() => {
+    if (hasPreloadedMediaToolsRef.current) {
+      return;
+    }
+
+    hasPreloadedMediaToolsRef.current = true;
+
+    void import("@web-speed-hackathon-2026/client/src/components/new_post_modal/NewPostModalPage");
+    void import("@imagemagick/magick-wasm");
+    void import("@web-speed-hackathon-2026/client/src/utils/convert_image");
+    void import("@web-speed-hackathon-2026/client/src/utils/convert_sound");
+    void import("@web-speed-hackathon-2026/client/src/utils/convert_movie");
+    void import("@web-speed-hackathon-2026/client/src/utils/load_ffmpeg").then(
+      ({ preloadFFmpegAssets }) => {
+        preloadFFmpegAssets();
+      },
+    );
+  }, []);
+
   useEffect(() => {
     const element = ref.current;
     const appShell = document.querySelector<HTMLElement>("[data-app-shell]");
@@ -78,6 +99,7 @@ export const NewPostModalContainer = ({ id }: Props) => {
     const handleToggle = () => {
       if (element.open) {
         setHasLoadedPage(true);
+        preloadModalDependencies();
       }
       toggleBackgroundAccessibility(element.open);
       // モーダル開閉時にkeyを更新することでフォームの状態をリセットする
@@ -88,37 +110,7 @@ export const NewPostModalContainer = ({ id }: Props) => {
       toggleBackgroundAccessibility(false);
       element.removeEventListener("toggle", handleToggle);
     };
-  }, []);
-
-  useEffect(() => {
-    const preload = () => {
-      void import("@web-speed-hackathon-2026/client/src/components/new_post_modal/NewPostModalPage");
-      void import("@imagemagick/magick-wasm");
-      void import("@web-speed-hackathon-2026/client/src/utils/convert_image");
-      void import("@web-speed-hackathon-2026/client/src/utils/convert_sound");
-      void import("@web-speed-hackathon-2026/client/src/utils/convert_movie");
-      void import("@web-speed-hackathon-2026/client/src/utils/load_ffmpeg").then(
-        ({ preloadFFmpegAssets }) => {
-          preloadFFmpegAssets();
-        },
-      );
-    };
-
-    const requestIdle = window.requestIdleCallback?.bind(window);
-    const cancelIdle = window.cancelIdleCallback?.bind(window);
-
-    if (requestIdle != null) {
-      const idleId = requestIdle(preload, { timeout: 2000 });
-      return () => {
-        cancelIdle?.(idleId);
-      };
-    }
-
-    const timeoutId = window.setTimeout(preload, 1000);
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
-  }, []);
+  }, [preloadModalDependencies]);
 
   const { pathname } = useLocation();
   const navigate = useNavigate();
