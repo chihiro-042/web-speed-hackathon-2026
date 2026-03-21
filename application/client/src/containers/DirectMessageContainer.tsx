@@ -73,6 +73,7 @@ export const DirectMessageContainer = ({ activeUser, authModalId }: Props) => {
         );
         setConversation((prev) => {
           if (prev == null) return prev;
+          if (prev.messages.some((m) => m.id === newMessage.id)) return prev;
           return { ...prev, messages: [...prev.messages, newMessage] };
         });
       } finally {
@@ -98,7 +99,9 @@ export const DirectMessageContainer = ({ activeUser, authModalId }: Props) => {
         if (prev.messages.some((m) => m.id === newMsg.id)) return prev;
         return { ...prev, messages: [...prev.messages, newMsg] };
       });
-      if (newMsg.sender.id !== activeUser?.id) {
+      if (newMsg.sender.id === activeUser?.id) {
+        setIsSubmitting(false);
+      } else {
         setIsPeerTyping(false);
         if (peerTypingTimeoutRef.current !== null) {
           clearTimeout(peerTypingTimeoutRef.current);
