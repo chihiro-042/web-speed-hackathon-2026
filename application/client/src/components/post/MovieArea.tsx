@@ -6,15 +6,20 @@ import {
 
 interface Props {
   movie: Models.Movie;
+  eager?: boolean;
 }
 
-export const MovieArea = ({ movie }: Props) => {
+export const MovieArea = ({ eager = false, movie }: Props) => {
   return (
     <div
       className="border-cax-border bg-cax-surface-subtle relative h-full w-full overflow-hidden rounded-lg border"
       data-movie-area
     >
-      <PausableMovie posterSrc={getMoviePosterPath(movie.id)} src={getMoviePath(movie.id)} />
+      <PausableMovie
+        eager={eager}
+        posterSrc={getMoviePosterPath(movie.id)}
+        src={getMoviePath(movie.id)}
+      />
     </div>
   );
 };

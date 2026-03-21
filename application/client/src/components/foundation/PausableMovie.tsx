@@ -5,6 +5,7 @@ import { AspectRatioBox } from "@web-speed-hackathon-2026/client/src/components/
 import { FontAwesomeIcon } from "@web-speed-hackathon-2026/client/src/components/foundation/FontAwesomeIcon";
 
 interface Props {
+  eager?: boolean;
   posterSrc: string;
   src: string;
 }
@@ -13,7 +14,7 @@ interface Props {
  * 初回描画は軽い poster を表示し、クリック後にだけ GIF を読み込みます。
  * 停止時は poster に戻して、初回表示のネットワーク負荷を抑えます。
  */
-export const PausableMovie = ({ posterSrc, src }: Props) => {
+export const PausableMovie = ({ eager = false, posterSrc, src }: Props) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [displayPosterSrc, setDisplayPosterSrc] = useState(posterSrc);
 
@@ -38,7 +39,8 @@ export const PausableMovie = ({ posterSrc, src }: Props) => {
           alt=""
           className="h-full w-full object-cover"
           decoding="async"
-          loading="lazy"
+          fetchPriority={eager ? "high" : "auto"}
+          loading={eager ? "eager" : "lazy"}
           onError={() => {
             if (displayPosterSrc !== src) {
               setDisplayPosterSrc(src);

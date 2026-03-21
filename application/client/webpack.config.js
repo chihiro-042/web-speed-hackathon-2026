@@ -44,6 +44,10 @@ const config = {
         use: [{ loader: "babel-loader" }],
       },
       {
+        resourceQuery: /raw/,
+        type: "asset/source",
+      },
+      {
         test: /\.css$/i,
         use: [
           { loader: MiniCssExtractPlugin.loader },
