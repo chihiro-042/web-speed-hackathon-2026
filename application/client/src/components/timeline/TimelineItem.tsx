@@ -68,7 +68,7 @@ export const TimelineItem = ({ post, priority = false, optimizeOffscreen = false
             <img
               alt={post.user.profileImage?.alt ?? ""}
               decoding="async"
-              fetchPriority={priority ? "high" : "auto"}
+              fetchPriority="auto"
               loading={priority ? "eager" : "lazy"}
               src={getSafeProfileImagePath(post.user.profileImage)}
             />

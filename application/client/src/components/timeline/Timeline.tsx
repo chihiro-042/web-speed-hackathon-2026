@@ -4,6 +4,7 @@ import { TimelineItem } from "@web-speed-hackathon-2026/client/src/components/ti
 
 const URGENT_COUNT = 3;
 const DEFER_TIMEOUT_MS = 1200;
+const DEFER_BATCH_SIZE = 2;
 
 interface Props {
   timeline: Models.Post[];
@@ -21,23 +22,32 @@ export const Timeline = ({
   const urgent = timeline.slice(0, initialCount);
   const rest = timeline.slice(initialCount);
 
-  const [deferred, setDeferred] = useState<Models.Post[]>([]);
+  const [deferredCount, setDeferredCount] = useState(0);
 
-  const setDeferredEvent = useEffectEvent(() => {
+  const revealNextBatch = useEffectEvent(() => {
     startTransition(() => {
-      setDeferred(rest);
+      setDeferredCount((current) => {
+        if (!deferUntilIdle) {
+          return rest.length;
+        }
+        return Math.min(current + DEFER_BATCH_SIZE, rest.length);
+      });
     });
   });
+
   useEffect(() => {
-    if (!deferUntilIdle) {
-      setDeferredEvent();
+    setDeferredCount(deferUntilIdle ? 0 : rest.length);
+  }, [deferUntilIdle, rest.length, timeline]);
+
+  useEffect(() => {
+    if (!deferUntilIdle || deferredCount >= rest.length) {
       return;
     }
 
     if (window.requestIdleCallback != null) {
       const id = window.requestIdleCallback(
         () => {
-          setDeferredEvent();
+          revealNextBatch();
         },
         { timeout: DEFER_TIMEOUT_MS },
       );
@@ -46,10 +56,12 @@ export const Timeline = ({
     }
 
     const id = window.setTimeout(() => {
-      setDeferredEvent();
+      revealNextBatch();
     }, 0);
     return () => window.clearTimeout(id);
-  }, [deferUntilIdle, timeline]);
+  }, [deferUntilIdle, deferredCount, rest.length]);
+
+  const deferred = rest.slice(0, deferredCount);
 
   return (
     <section>
