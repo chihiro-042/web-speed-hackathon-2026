@@ -30,6 +30,7 @@ export const ImageArea = ({ images, eagerFirstImage = false }: Props) => {
             >
               <CoveredImage
                 alt={image.alt}
+                fetchPriority={eagerFirstImage && idx === 0 ? "high" : "auto"}
                 metadataSrc={getOriginalImagePath(image.id)}
                 loading={eagerFirstImage && idx === 0 ? "eager" : "lazy"}
                 src={getImagePath(image.id)}

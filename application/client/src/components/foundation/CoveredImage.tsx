@@ -7,6 +7,7 @@ interface Props {
   alt?: string;
   src: string;
   metadataSrc?: string;
+  fetchPriority?: "auto" | "high";
   loading?: "eager" | "lazy";
 }
 
@@ -15,6 +16,7 @@ interface Props {
  */
 export const CoveredImage = ({
   alt: initialAlt = "",
+  fetchPriority = "auto",
   src,
   metadataSrc,
   loading = "lazy",
@@ -80,6 +82,7 @@ export const CoveredImage = ({
         alt={alt}
         className="absolute inset-0 h-full w-full object-cover"
         decoding="async"
+        fetchPriority={fetchPriority}
         loading={loading}
         onError={() => {
           if (metadataSrc != null && displaySrc !== metadataSrc) {
