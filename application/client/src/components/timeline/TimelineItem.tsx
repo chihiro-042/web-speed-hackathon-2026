@@ -1,4 +1,4 @@
-import { MouseEventHandler, useCallback } from "react";
+import { CSSProperties, MouseEventHandler, useCallback } from "react";
 import { Link, useNavigate } from "react-router";
 
 import { ImageArea } from "@web-speed-hackathon-2026/client/src/components/post/ImageArea";
@@ -28,10 +28,16 @@ const isClickedAnchorOrButton = (target: EventTarget | null, currentTarget: Elem
  */
 interface Props {
   post: Models.Post;
+  optimizeOffscreen?: boolean;
   priority?: boolean;
 }
 
-export const TimelineItem = ({ post, priority = false }: Props) => {
+const OFFSCREEN_ITEM_STYLE: CSSProperties = {
+  containIntrinsicSize: "600px",
+  contentVisibility: "auto",
+};
+
+export const TimelineItem = ({ post, priority = false, optimizeOffscreen = false }: Props) => {
   const navigate = useNavigate();
 
   /**
@@ -48,7 +54,11 @@ export const TimelineItem = ({ post, priority = false }: Props) => {
   );
 
   return (
-    <article className="hover:bg-cax-surface-subtle px-1 sm:px-4" onClick={handleClick}>
+    <article
+      className="hover:bg-cax-surface-subtle px-1 sm:px-4"
+      onClick={handleClick}
+      style={optimizeOffscreen ? OFFSCREEN_ITEM_STYLE : undefined}
+    >
       <div className="border-cax-border flex border-b px-2 pt-2 pb-4 sm:px-4">
         <div className="shrink-0 grow-0 pr-2 sm:pr-4">
           <Link

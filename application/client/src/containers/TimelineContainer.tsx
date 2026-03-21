@@ -8,9 +8,9 @@ export const TimelineContainer = () => {
   const { data: posts, fetchMore } = useInfiniteFetch<Models.Post>("/api/v1/posts", fetchJSON);
 
   return (
-    <InfiniteScroll fetchMore={fetchMore} items={posts}>
+    <InfiniteScroll fetchMore={fetchMore} items={posts} requireScroll>
       <PageTitle title="タイムライン - CaX" />
-      <TimelinePage timeline={posts} />
+      <TimelinePage deferUntilIdle initialCount={1} optimizeOffscreen timeline={posts} />
     </InfiniteScroll>
   );
 };

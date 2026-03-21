@@ -2,8 +2,23 @@ import { Timeline } from "@web-speed-hackathon-2026/client/src/components/timeli
 
 interface Props {
   timeline: Models.Post[];
+  deferUntilIdle?: boolean;
+  initialCount?: number;
+  optimizeOffscreen?: boolean;
 }
 
-export const TimelinePage = ({ timeline }: Props) => {
-  return <Timeline timeline={timeline} />;
+export const TimelinePage = ({
+  timeline,
+  deferUntilIdle = false,
+  initialCount,
+  optimizeOffscreen = false,
+}: Props) => {
+  return (
+    <Timeline
+      deferUntilIdle={deferUntilIdle}
+      initialCount={initialCount}
+      optimizeOffscreen={optimizeOffscreen}
+      timeline={timeline}
+    />
+  );
 };

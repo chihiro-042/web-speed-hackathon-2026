@@ -1,9 +1,10 @@
-import { type ReactNode, useEffect, useRef } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 
 interface Props {
   children: ReactNode;
   items: any[];
   fetchMore: () => void;
+  requireScroll?: boolean;
 }
 
 /** ビューポート下端より手前で次ページ取得を始める余白（従来の「最下部付近」に近い体感） */
@@ -13,10 +14,26 @@ const ROOT_MARGIN_PX = 320;
  * ドキュメント末尾のセンチネルがビューポートに近づいたら次ページを取得する。
  * scroll/wheel などへの同期リスナは張らない（IntersectionObserver のみ）。
  */
-export const InfiniteScroll = ({ children, fetchMore, items }: Props) => {
+export const InfiniteScroll = ({ children, fetchMore, items, requireScroll = false }: Props) => {
   const sentinelRef = useRef<HTMLDivElement>(null);
   const prevLengthRef = useRef(items.length);
-  const canLoadMore = items.length > 0;
+  const [hasUserScrolled, setHasUserScrolled] = useState(!requireScroll);
+  const canLoadMore = items.length > 0 && hasUserScrolled;
+
+  useEffect(() => {
+    if (!requireScroll) {
+      setHasUserScrolled(true);
+      return;
+    }
+
+    const handleScroll = () => {
+      setHasUserScrolled(true);
+      window.removeEventListener("scroll", handleScroll);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [requireScroll]);
 
   useEffect(() => {
     if (!canLoadMore) {
