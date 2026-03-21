@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
 
 import { ChatInput } from "@web-speed-hackathon-2026/client/src/components/crok/ChatInput";
 import { ChatMessage } from "@web-speed-hackathon-2026/client/src/components/crok/ChatMessage";
@@ -9,10 +9,12 @@ import { useHasContentBelow } from "@web-speed-hackathon-2026/client/src/hooks/u
 interface Props {
   messages: Models.ChatMessage[];
   isStreaming: boolean;
+  /** ストリーミング中の最新アシスタントメッセージのコンテンツ。安定したメッセージ配列と分離することで過去メッセージの再レンダリングを防ぐ */
+  streamingContent: string | null;
   onSendMessage: (message: string) => void;
 }
 
-export const CrokPage = ({ messages, isStreaming, onSendMessage }: Props) => {
+export const CrokPage = ({ messages, isStreaming, streamingContent, onSendMessage }: Props) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const stickyBarRef = useRef<HTMLDivElement>(null);
   const showScrollButton = useHasContentBelow(messagesEndRef, stickyBarRef);
@@ -21,21 +23,31 @@ export const CrokPage = ({ messages, isStreaming, onSendMessage }: Props) => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  // ストリーミング中は最後のアシスタントメッセージを除いた安定したリストを useMemo で保持し、
+  // streamingContent が変わるたびに発生する不要な過去メッセージの再レンダリングを防ぐ
+  const isLastMessageStreaming = isStreaming && streamingContent !== null && messages.length > 0;
+  const stableMessages = useMemo(
+    () => (isLastMessageStreaming ? messages.slice(0, -1) : messages),
+    [messages, isLastMessageStreaming],
+  );
+  const lastStreamingMessage = isLastMessageStreaming ? messages[messages.length - 1] : null;
+
   return (
     <div className="bg-cax-surface flex min-h-[calc(100vh-(--spacing(12)))] flex-col lg:min-h-screen">
       <div className="flex-1">
         <div className="mx-auto max-w-2xl px-4 py-8">
           {messages.length === 0 && <WelcomeScreen />}
 
-          {messages.map((message, index) => (
-            <ChatMessage
-              key={index}
-              assistantStreaming={
-                isStreaming && index === messages.length - 1 && message.role === "assistant"
-              }
-              message={message}
-            />
+          {stableMessages.map((message, index) => (
+            <ChatMessage key={index} assistantStreaming={false} message={message} />
           ))}
+          {lastStreamingMessage != null && (
+            <ChatMessage
+              key="streaming"
+              assistantStreaming={true}
+              message={{ ...lastStreamingMessage, content: streamingContent! }}
+            />
+          )}
           <div ref={messagesEndRef} className="h-px w-full" />
         </div>
       </div>

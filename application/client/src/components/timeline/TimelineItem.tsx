@@ -1,4 +1,4 @@
-import { CSSProperties, MouseEventHandler, useCallback } from "react";
+import { CSSProperties, memo, MouseEventHandler, useCallback } from "react";
 import { Link, useNavigate } from "react-router";
 
 import { ImageArea } from "@web-speed-hackathon-2026/client/src/components/post/ImageArea";
@@ -37,7 +37,11 @@ const OFFSCREEN_ITEM_STYLE: CSSProperties = {
   contentVisibility: "auto",
 };
 
-export const TimelineItem = ({ post, priority = false, optimizeOffscreen = false }: Props) => {
+export const TimelineItem = memo(function TimelineItem({
+  post,
+  priority = false,
+  optimizeOffscreen = false,
+}: Props) {
   const navigate = useNavigate();
 
   /**
@@ -117,4 +121,4 @@ export const TimelineItem = ({ post, priority = false, optimizeOffscreen = false
       </div>
     </article>
   );
-};
+});

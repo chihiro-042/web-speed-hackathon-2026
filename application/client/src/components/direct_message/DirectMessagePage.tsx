@@ -33,7 +33,8 @@ interface Props {
 
 interface MessageListProps {
   activeUserId: string;
-  conversation: Models.DirectMessageConversation;
+  messages: Models.DirectMessage[];
+  hasOlderMessages: boolean;
   isLoadingOlderMessages: boolean;
   messageListContainerRef: RefObject<HTMLDivElement | null>;
   messagesEndRef: RefObject<HTMLDivElement | null>;
@@ -84,7 +85,8 @@ const DirectMessageRow = memo(
 const DirectMessageMessageList = memo(
   ({
     activeUserId,
-    conversation,
+    messages,
+    hasOlderMessages,
     isLoadingOlderMessages,
     messageListContainerRef,
     messagesEndRef,
@@ -95,7 +97,7 @@ const DirectMessageMessageList = memo(
         className="bg-cax-surface-subtle flex-1 space-y-4 overflow-y-auto px-4 pt-4 pb-8"
         ref={messageListContainerRef}
       >
-        {conversation.hasOlderMessages && (
+        {hasOlderMessages && (
           <div className="flex justify-center">
             <Button
               className="text-sm"
@@ -110,14 +112,14 @@ const DirectMessageMessageList = memo(
           </div>
         )}
 
-        {conversation.messages.length === 0 && (
+        {messages.length === 0 && (
           <p className="text-cax-text-muted text-center text-sm">
             まだメッセージはありません。最初のメッセージを送信してみましょう。
           </p>
         )}
 
         <ul className="grid gap-3" data-testid="dm-message-list">
-          {conversation.messages.map((message) => (
+          {messages.map((message) => (
             <DirectMessageRow key={message.id} activeUserId={activeUserId} message={message} />
           ))}
         </ul>
@@ -366,7 +368,8 @@ export const DirectMessagePage = ({
 
       <DirectMessageMessageList
         activeUserId={activeUser.id}
-        conversation={conversation}
+        messages={conversation.messages}
+        hasOlderMessages={conversation.hasOlderMessages}
         isLoadingOlderMessages={isLoadingOlderMessages}
         messageListContainerRef={messageListContainerRef}
         messagesEndRef={messagesEndRef}
